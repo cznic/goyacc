@@ -96,7 +96,7 @@ var (
 	oPref     = flag.String("p", "yy", "name prefix to use in generated code")
 	oReport   = flag.String("v", "y.output", "create grammar report")
 	oResolved = flag.Bool("ex", false, "explain how were conflicts resolved")
-	oXErrors  = flag.String("xe", "", "generate errors by examples source file")
+	oXErrors  = flag.String("xe", "", "generate eXtra errors from examples source file")
 )
 
 func main() {
@@ -531,16 +531,23 @@ next:
 `,
 		*oPref, endSym, errSym)
 	for r, rule := range p.Rules {
+		components := rule.Components
 		typ := rule.Sym.Type
-		nc := len(rule.Components)
+		max := len(components)
+		synth := false
+		if p := rule.Parent; p != nil {
+			max = rule.MaxParentDlr
+			components = p.Components
+			synth = true
+		}
 		action := rule.Action
 		if len(action) == 0 && typ == "" {
 			continue
 		}
 
 		f.Format("case %d: {", r)
-		if len(action) == 0 {
-			f.Format("%i\nrval.%s = stack[sp].%s%u\n}\n", typ, p.Syms[rule.Components[0]].Type)
+		if len(action) == 0 && !synth {
+			f.Format("%i\nrval.%s = stack[sp].%s%u\n}\n", typ, p.Syms[components[0]].Type)
 			continue
 		}
 
@@ -551,11 +558,11 @@ next:
 			case yscanner.DLR_DLR:
 				f.Format("rval.%s", typ)
 			case yscanner.DLR_NUM:
-				f.Format("stack[sp-%d].%s", nc-num, p.Syms[rule.Components[num-1]].Type)
+				f.Format("stack[sp-%d].%s", max-num, p.Syms[components[num-1]].Type)
 			case yscanner.DLR_TAG_DLR:
 				f.Format("rval.%s", part.Tag)
 			case yscanner.DLR_TAG_NUM:
-				f.Format("stack[sp-%d].%s", part.Tag)
+				f.Format("stack[sp-%d].%s", num, part.Tag)
 			}
 		}
 		f.Format("}\n")

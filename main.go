@@ -205,7 +205,14 @@ func main1(in string) error {
 		return err
 	}
 
-	msu := map[*y.Symbol]int{p.Syms["error"]: 0} // sym -> usage
+	msu := make(map[*y.Symbol]int, len(p.Syms)) // sym -> usage
+	for nm, sym := range p.Syms {
+		if nm == "" || nm == "ε" || nm == "$accept" || nm == "#" {
+			continue
+		}
+
+		msu[sym] = 0
+	}
 	var minArg, maxArg int
 	for _, state := range p.Table {
 		for _, act := range state {
@@ -553,9 +560,9 @@ next:
 			continue
 		}
 
-		f.Format("case %d: {", r)
+		f.Format("case %d: ", r)
 		if len(action) == 0 && !synth {
-			f.Format("%i\nrval.%s = stack[sp].%s%u\n}\n", typ, p.Syms[components[0]].Type)
+			f.Format("%i{\nrval.%s = stack[sp].%s%u\n}\n", typ, p.Syms[components[0]].Type)
 			continue
 		}
 
@@ -573,7 +580,7 @@ next:
 				f.Format("stack[sp-%d].%s", num, part.Tag)
 			}
 		}
-		f.Format("}\n")
+		f.Format("\n")
 	}
 	f.Format(`%u
 	}

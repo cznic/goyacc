@@ -120,7 +120,15 @@ func main() {
 	}
 
 	if err := main1(in); err != nil {
-		log.Fatal(err)
+		switch x := err.(type) {
+		case scanner.ErrorList:
+			for _, v := range x {
+				fmt.Fprintf(os.Stderr, "%v\n", v)
+			}
+			os.Exit(1)
+		default:
+			log.Fatal(err)
+		}
 	}
 }
 

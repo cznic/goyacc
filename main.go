@@ -577,7 +577,7 @@ next:
 			case yscanner.DLR_TAG_DLR:
 				f.Format("rval.%s", part.Tag)
 			case yscanner.DLR_TAG_NUM:
-				f.Format("stack[sp-%d].%s", num, part.Tag)
+				f.Format("stack[sp-%d].%s", max-num, part.Tag)
 			}
 		}
 		f.Format("\n")

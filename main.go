@@ -390,14 +390,14 @@ type %[1]sLexer interface {
 	Error(s string)
 }
 
-const %[1]sEOF = %d
+const %[1]sEofCode = %d
 
 func %[1]sSymName(c int) (s string) {
 	if c >= 0 && c < len(%[1]sSymNames) {
 		return %[1]sSymNames[c]
 	}
 
-	return __yyfmt__.Sprintf("%%q", c)
+	return __yyfmt__.Sprintf("%%d", c)
 }
 
 func %[1]slex1(lex %[1]sLexer, lval *%[1]sSymType) (n int) {
@@ -405,179 +405,198 @@ func %[1]slex1(lex %[1]sLexer, lval *%[1]sSymType) (n int) {
 	if n <= 0 {
 		n = -1
 	}
-	n = %[1]sXLAT[n]
+	m := %[1]sXLAT[n]
 	if %[1]sDebug >= 3 {
-			__yyfmt__.Printf("\nlex %%s(%%d)\n\n", %[1]sSymName(n), n)
+			__yyfmt__.Printf("lex %%s(%%#x->%%d), lval %%+v\n\n", %[1]sSymName(m), n, m, lval)
 	}
-	return n
+	return m
 }
 
 func %[1]sParse(yylex %[1]sLexer) int {
 	const yyError = %[3]d
-	var lval, rval %[1]sSymType
-	errState := 0
+
+	var yyn int
+	var yylval %[1]sSymType
+	var yyVAL %[1]sSymType
+	yyS := make([]%[1]sSymType, 200)
+
+	Nerrs := 0   /* number of errors */
+	Errflag := 0 /* error recovery flag */
 	yyerrok := func() { 
 		if %[1]sDebug >= 2 {
 			__yyfmt__.Printf("\tyyerrok()\n\n")
 		}
-		errState = 0
+		Errflag = 0
 	}
 	_ = yyerrok
-	stack := []%[1]sSymType{{}}
-	lookahead := -1
-next:
-	sp := len(stack)-1
-	state := stack[sp].yys
-	if lookahead < 0 {
-		lookahead = %[1]slex1(yylex, &lval)
+	yystate := 0
+	yychar := -1
+	yyp := -1
+	goto yystack
+
+ret0:
+	return 0
+
+ret1:
+	return 1
+
+yystack:
+	/* put a state and value onto the stack */
+	yyp++
+	if yyp >= len(yyS) {
+		nyys := make([]%[1]sSymType, len(yyS)*2)
+		copy(nyys, yyS)
+		yyS = nyys
 	}
-	if %[1]sDebug >= 4 {
-		var a []int
-		for _, v := range stack {
-			a = append(a, v.yys)
+	yyS[yyp] = yyVAL
+	yyS[yyp].yys = yystate
+
+yynewstate:
+	if yychar < 0 {
+		yychar = yylex1(yylex, &yylval)
+	}
+	if yyDebug >= 4 {
+		if yyDebug >= 5 {
+			var a []int
+			for _, v := range yyS[:yyp+1] {
+				a = append(a, v.yys)
+			}
+			__yyfmt__.Printf("state %%d, lookahead %%s, state stack %%v\n", yystate, %[1]sSymName(yychar), a)
+		} else {
+			__yyfmt__.Printf("state %%d, lookahead %%s\n", yystate, %[1]sSymName(yychar))
 		}
-		__yyfmt__.Printf("state %%d, lookahead %%v, states stack %%v\n", state, %[1]sSymName(lookahead), a)
 	}
-	if %[1]sDebug >= 6 {
-		__yyfmt__.Printf("\tlval %%+v\n", lval)
-		__yyfmt__.Printf("\trval %%+v\n", rval)
-	}
-	if %[1]sDebug >= 7 {
-		__yyfmt__.Printf("\tfull stack %%+v\n", stack)
-	}
-	row := %[1]sParseTab[state]
-	arg := 0
-	if lookahead < len(row) {
-		arg = int(row[lookahead])
-		if arg != 0 {
-			arg += %[1]sTabOfs
+	row := %[1]sParseTab[yystate]
+	yyn = 0
+	if yychar < len(row) {
+		if yyn = int(row[yychar]); yyn != 0 {
+			yyn += %[1]sTabOfs
 		}
 	}
 	switch {
-	case arg > 0: // shift
-		lval.yys = arg
-		stack = append(stack, lval)
-		lval = %[1]sSymType{}
-		if errState > 0 {
-			errState--
+	case yyn > 0: // shift
+		yychar = -1
+		yyVAL = yylval
+		yystate = yyn
+		if yyDebug >= 2 {
+			__yyfmt__.Printf("\tshift, and goto state %%d\n\n", yystate)
 		}
-		lookahead = -1
-		if %[1]sDebug >= 4 {
-			__yyfmt__.Printf("\tshift, and goto state %%d\n", arg)
+		if Errflag > 0 {
+			Errflag--
 		}
-		goto next
-	case arg < 0: // reduce
-	case state == 1: // accept
-		return 0
-	default: // error
-		switch errState {
-		case 0:
-			if %[1]sDebug >= 1 {
-				__yyfmt__.Printf("\tstate %%d, unexpected lookahead %%s\n", state, %[1]sSymName(lookahead))
+		goto yystack
+	case yyn < 0: // reduce
+	case yystate == 1: // accept
+		goto ret0
+	}
+
+	if yyn == 0 {
+		/* error ... attempt to resume parsing */
+		switch Errflag {
+		case 0: /* brand new error */
+			if yyDebug >= 1 {
+				__yyfmt__.Printf("\tno action for %%s\n", %[1]sSymName(yychar))
 			}
-			k := %[1]sXError{state, lookahead}
-			if %[1]sDebug >= 5 {
-				__yyfmt__.Printf("\terror recovery looking for xerror key {state %%d, lookahead %%s}\n", state, %[1]sSymName(lookahead))
-			}
+			k := %[1]sXError{yystate, yychar}
 			msg, ok := %[1]sXErrors[k]
 			if !ok {
 				k.xsym = -1
-				if %[1]sDebug >= 5 {
-					__yyfmt__.Printf("\terror recovery looking for xerror key {state %%d, lookahead <nil>}\n", state)
-				}
 				msg, ok = %[1]sXErrors[k]
 			}
 			if !ok {
 				msg = "syntax error"
 			}
 			yylex.Error(msg)
+			Nerrs++
 			fallthrough
-		case 1, 2:
-			errState = 3
-			for sp != 0 {
-				row := %[1]sParseTab[state]
+
+		case 1, 2: /* incompletely recovered error ... try again */
+			Errflag = 3
+
+			/* find a state where "error" is a legal shift action */
+			for yyp >= 0 {
+				row := %[1]sParseTab[yyS[yyp].yys]
 				if yyError < len(row) {
-					arg = int(row[yyError])+%[1]sTabOfs
-					if arg != 0 { // hit
+					yyn = int(row[yyError])+%[1]sTabOfs
+					if yyn != 0 { // hit
 						if %[1]sDebug >= 2 {
-							__yyfmt__.Printf("\terror recovery found error shift in state %%d\n\n", state)
+							__yyfmt__.Printf("\terror recovery found error shift in state %%d\n\n", yyS[yyp].yys)
 						}
-						lval.yys = arg
-						stack = append(stack, lval)
-						lval = %[1]sSymType{}
-						goto next
+						yystate = yyn /* simulate a shift of "error" */
+						goto yystack
 					}
 				}
 
-				stack = stack[:sp]
-				sp--
-				state = stack[sp].yys
-				if %[1]sDebug >= 2 {
-					__yyfmt__.Printf("\terror recovery pops state %%d\n", state)
+				/* the current p has no shift on "error", pop stack */
+				if yyDebug >= 2 {
+					__yyfmt__.Printf("\terror recovery pops state %%d\n", yyS[yyp].yys)
 				}
+				yyp--
 			}
-
-			if %[1]sDebug >= 2 {
+			/* there is no state on the stack with an error shift ... abort */
+			if yyDebug >= 2 {
 				__yyfmt__.Printf("\terror recovery failed\n\n")
 			}
-			return 1
-		case 3:
-			if %[1]sDebug >= 2 {
-				__yyfmt__.Printf("\terror recovery discards %%s\n", %[1]sSymName(lookahead))
+			goto ret1
+
+		case 3: /* no shift yet; clobber input char */
+			if yyDebug >= 2 {
+				__yyfmt__.Printf("\terror recovery discards %%s\n", %[1]sSymName(yychar))
 			}
-			if lookahead == %[1]sEOF {
-				return 1
+			if yychar == yyEofCode {
+				goto ret1
 			}
 
-			lookahead = -1
-			goto next
+			yychar = -1
+			goto yynewstate /* try again in the same state */
 		}
-		return 1
 	}
 
-	r := -arg
+	r := -yyn
 	x0 := %[1]sReductions[r]
 	x, n := x0.xsym, x0.components
-	rval.yys = int(%[1]sParseTab[stack[sp-n].yys][x])+%[1]sTabOfs
-	if %[1]sDebug >= 4 {
-		__yyfmt__.Printf("\treduce rule %%d (%%s), and goto state %%d\n", r, %[1]sSymName(x), rval.yys)
+	yypt := yyp
+	_ = yypt // guard against "declared and not used"
+
+	yyp -= n
+	yyVAL = yyS[yyp+1]
+
+	/* consult goto table to find next state */
+	yystate = int(%[1]sParseTab[yyS[yyp].yys][x])+%[1]sTabOfs
+	/* reduction by production r */
+	if yyDebug >= 2 {
+		__yyfmt__.Printf("\treduce using rule %%v (%%s), and goto state %%d\n\n", r, %[1]sSymName(x), yystate)
 	}
+
 	switch r {%i
 `,
 		*oPref, endSym, errSym)
 	for r, rule := range p.Rules {
+		action := rule.Action
+		if len(action) == 0 {
+			continue
+		}
+
 		components := rule.Components
 		typ := rule.Sym.Type
 		max := len(components)
-		synth := false
 		if p := rule.Parent; p != nil {
 			max = rule.MaxParentDlr
 			components = p.Components
-			synth = true
 		}
-		action := rule.Action
-		if len(action) == 0 && typ == "" {
-			continue
-		}
-
 		f.Format("case %d: ", r)
-		if len(action) == 0 && !synth {
-			f.Format("%i{\nrval.%s = stack[sp].%s%u\n}\n", typ, p.Syms[components[0]].Type)
-			continue
-		}
-
 		for _, part := range action {
 			num := part.Num
 			f.Format("%s", part.Src)
 			switch part.Tok {
 			case yscanner.DLR_DLR:
-				f.Format("rval.%s", typ)
+				f.Format("yyVAL.%s", typ)
 			case yscanner.DLR_NUM:
-				f.Format("stack[sp-%d].%s", max-num, p.Syms[components[num-1]].Type)
+				f.Format("yyS[yypt-%d].%s", max-num, p.Syms[components[num-1]].Type)
 			case yscanner.DLR_TAG_DLR:
-				f.Format("rval.%s", part.Tag)
+				f.Format("yyVAL.%s", part.Tag)
 			case yscanner.DLR_TAG_NUM:
-				f.Format("stack[sp-%d].%s", max-num, part.Tag)
+				f.Format("yyS[yypt-%d].%s", max-num, part.Tag)
 			}
 		}
 		f.Format("\n")
@@ -585,8 +604,7 @@ next:
 	f.Format(`%u
 	}
 
-	stack = append(stack[:sp-n+1], rval)
-	goto next
+	goto yystack /* stack new state and value */
 }
 
 %[2]s

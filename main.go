@@ -251,7 +251,7 @@ type %[1]sXError struct {
 	maxTokName := 0
 	for sym := range msu {
 		nm := sym.Name
-		if nm == "$default" || sym.IsTerminal && nm[0] != '\'' && sym.Value > 0 {
+		if nm == "$default" || nm == "$end" || sym.IsTerminal && nm[0] != '\'' && sym.Value > 0 {
 			maxTokName = mathutil.Max(maxTokName, len(nm))
 			a = append(a, nm)
 		}
@@ -263,14 +263,17 @@ type %[1]sXError struct {
 		nm := v
 		switch nm {
 		case "error":
-			continue
+			nm = *oPref + "ErrCode"
 		case "$default":
 			nm = *oPref + "Default"
+		case "$end":
+			nm = *oPref + "EofCode"
 		}
-		f.Format("%s%s= %d\n", nm, strings.Repeat(" ", maxTokName-len(nm)+1), nsyms[v].Value)
+		f.Format("%s%s = %d\n", nm, strings.Repeat(" ", maxTokName-len(nm)+1), nsyms[v].Value)
 	}
 	minArg-- // eg: [-13, 42], minArg -14 maps -13 to 1 so zero cell values -> empty.
-	f.Format("\n%sTabOfs = %d\n", *oPref, minArg)
+	f.Format("\n%sMaxDepth = 200\n", *oPref)
+	f.Format("%sTabOfs   = %d\n", *oPref, minArg)
 	f.Format("%u)")
 
 	// ---------------------------------------------------------- Variables
@@ -390,8 +393,6 @@ type %[1]sLexer interface {
 	Error(s string)
 }
 
-const %[1]sEofCode = %d
-
 func %[1]sSymName(c int) (s string) {
 	if c >= 0 && c < len(%[1]sSymNames) {
 		return %[1]sSymNames[c]
@@ -414,6 +415,7 @@ func %[1]slex1(lex %[1]sLexer, lval *%[1]sSymType) (n int) {
 
 func %[1]sParse(yylex %[1]sLexer) int {
 	const yyError = %[3]d
+	const %[1]sEofCode = %d
 
 	var yyn int
 	var yylval %[1]sSymType
@@ -559,6 +561,11 @@ yynewstate:
 	_ = yypt // guard against "declared and not used"
 
 	yyp -= n
+	if yyp+1 >= len(yyS) {
+		nyys := make([]%[1]sSymType, len(yyS)*2)
+		copy(nyys, yyS)
+		yyS = nyys
+	}
 	yyVAL = yyS[yyp+1]
 
 	/* consult goto table to find next state */

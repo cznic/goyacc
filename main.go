@@ -69,8 +69,10 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
+	"go/format"
 	"go/scanner"
 	"go/token"
 	"io"
@@ -154,18 +156,41 @@ func (s symsUsed) Less(i, j int) bool {
 	return strings.ToLower(s[i].sym.Name) < strings.ToLower(s[j].sym.Name)
 }
 
-func main1(in string) error {
+func main1(in string) (err error) {
 	var out io.Writer
 	if nm := *oOut; nm != "" {
-		f, err := os.Create(nm)
-		if err != nil {
+		var f *os.File
+		var e error
+		if f, err = os.Create(nm); err != nil {
 			return err
 		}
 
-		defer f.Close()
+		defer func() {
+			if e := f.Close(); e != nil && err == nil {
+				err = e
+			}
+		}()
 		w := bufio.NewWriter(f)
-		defer w.Flush()
-		out = w
+		defer func() {
+			if e := w.Flush(); e != nil && err == nil {
+				err = e
+			}
+		}()
+		buf := bytes.NewBuffer(nil)
+		out = buf
+		defer func() {
+			var dest []byte
+			if dest, e = format.Source(buf.Bytes()); e != nil {
+				if err == nil {
+					err = e
+				}
+				return
+			}
+
+			if _, e = w.Write(dest); e != nil && err == nil {
+				err = e
+			}
+		}()
 	}
 
 	var rep io.Writer
@@ -175,9 +200,17 @@ func main1(in string) error {
 			return err
 		}
 
-		defer f.Close()
+		defer func() {
+			if e := f.Close(); e != nil && err == nil {
+				err = e
+			}
+		}()
 		w := bufio.NewWriter(f)
-		defer w.Flush()
+		defer func() {
+			if e := w.Flush(); e != nil && err == nil {
+				err = e
+			}
+		}()
 		rep = w
 	}
 

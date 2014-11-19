@@ -315,11 +315,8 @@ type %[1]sXError struct {
 	// Lex translation table
 	f.Format("%sXLAT = map[int]int{%i\n", *oPref)
 	xlat := make(map[int]int, len(su))
-	var endSym, errSym int
+	var errSym int
 	for i, v := range su {
-		if v.sym.Name == "$end" {
-			endSym = i
-		}
 		if v.sym.Name == "error" {
 			errSym = i
 		}
@@ -447,8 +444,7 @@ func %[1]slex1(lex %[1]sLexer, lval *%[1]sSymType) (n, x int) {
 }
 
 func %[1]sParse(yylex %[1]sLexer) int {
-	const yyError = %[3]d
-	const %[1]sEofCode = %d
+	const yyError = %[2]d
 
 	var yyn int
 	var yylval %[1]sSymType
@@ -573,9 +569,9 @@ yynewstate:
 
 		case 3: /* no shift yet; clobber input char */
 			if yyDebug >= 2 {
-				__yyfmt__.Printf("error recovery discards %%s\n", %[1]sSymName(yyxchar))
+				__yyfmt__.Printf("error recovery discards %%s\n", %[1]sSymName(yychar))
 			}
-			if yyxchar == yyEofCode {
+			if yychar == yyEofCode {
 				goto ret1
 			}
 
@@ -607,7 +603,7 @@ yynewstate:
 
 	switch r {%i
 `,
-		*oPref, endSym, errSym)
+		*oPref, errSym)
 	for r, rule := range p.Rules {
 		action := rule.Action
 		if len(action) == 0 {

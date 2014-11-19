@@ -427,23 +427,23 @@ type %[1]sLexer interface {
 }
 
 func %[1]sSymName(c int) (s string) {
-	if c >= 0 && c < len(%[1]sSymNames) {
-		return %[1]sSymNames[c]
+	x, ok := %[1]sXLAT[c]
+	if ok {
+		return %[1]sSymNames[x]
 	}
 
 	return __yyfmt__.Sprintf("%%d", c)
 }
 
-func %[1]slex1(lex %[1]sLexer, lval *%[1]sSymType) (n int) {
+func %[1]slex1(lex %[1]sLexer, lval *%[1]sSymType) (n, x int) {
 	n = lex.Lex(lval)
 	if n <= 0 {
 		n = -1
 	}
-	m := %[1]sXLAT[n]
 	if %[1]sDebug >= 3 {
-			__yyfmt__.Printf("lex %%s(%%#x->%%d), lval %%+v\n\n", %[1]sSymName(m), n, m, lval)
+			__yyfmt__.Printf("\nlex %%s(%%#x %%d), lval %%+v\n", %[1]sSymName(n), n, n, lval)
 	}
-	return m
+	return n, %[1]sXLAT[n]
 }
 
 func %[1]sParse(yylex %[1]sLexer) int {
@@ -459,13 +459,14 @@ func %[1]sParse(yylex %[1]sLexer) int {
 	Errflag := 0 /* error recovery flag */
 	yyerrok := func() { 
 		if %[1]sDebug >= 2 {
-			__yyfmt__.Printf("\tyyerrok()\n\n")
+			__yyfmt__.Printf("yyerrok()\n")
 		}
 		Errflag = 0
 	}
 	_ = yyerrok
 	yystate := 0
 	yychar := -1
+	var yyxchar int
 	yyp := -1
 	goto yystack
 
@@ -488,23 +489,19 @@ yystack:
 
 yynewstate:
 	if yychar < 0 {
-		yychar = yylex1(yylex, &yylval)
+		yychar, yyxchar = yylex1(yylex, &yylval)
 	}
 	if yyDebug >= 4 {
-		if yyDebug >= 5 {
-			var a []int
-			for _, v := range yyS[:yyp+1] {
-				a = append(a, v.yys)
-			}
-			__yyfmt__.Printf("state %%d, lookahead %%s, state stack %%v\n", yystate, %[1]sSymName(yychar), a)
-		} else {
-			__yyfmt__.Printf("state %%d, lookahead %%s\n", yystate, %[1]sSymName(yychar))
+		var a []int
+		for _, v := range yyS[:yyp+1] {
+			a = append(a, v.yys)
 		}
+		__yyfmt__.Printf("state stack %%v\n", a)
 	}
 	row := %[1]sParseTab[yystate]
 	yyn = 0
-	if yychar < len(row) {
-		if yyn = int(row[yychar]); yyn != 0 {
+	if yyxchar < len(row) {
+		if yyn = int(row[yyxchar]); yyn != 0 {
 			yyn += %[1]sTabOfs
 		}
 	}
@@ -514,7 +511,7 @@ yynewstate:
 		yyVAL = yylval
 		yystate = yyn
 		if yyDebug >= 2 {
-			__yyfmt__.Printf("\tshift, and goto state %%d\n\n", yystate)
+			__yyfmt__.Printf("shift, and goto state %%d\n", yystate)
 		}
 		if Errflag > 0 {
 			Errflag--
@@ -530,9 +527,9 @@ yynewstate:
 		switch Errflag {
 		case 0: /* brand new error */
 			if yyDebug >= 1 {
-				__yyfmt__.Printf("\tno action for %%s\n", %[1]sSymName(yychar))
+				__yyfmt__.Printf("no action for %%s in state %%d\n", %[1]sSymName(yychar), yystate)
 			}
-			k := %[1]sXError{yystate, yychar}
+			k := %[1]sXError{yystate, yyxchar}
 			msg, ok := %[1]sXErrors[k]
 			if !ok {
 				k.xsym = -1
@@ -555,7 +552,7 @@ yynewstate:
 					yyn = int(row[yyError])+%[1]sTabOfs
 					if yyn != 0 { // hit
 						if %[1]sDebug >= 2 {
-							__yyfmt__.Printf("\terror recovery found error shift in state %%d\n\n", yyS[yyp].yys)
+							__yyfmt__.Printf("error recovery found error shift in state %%d\n", yyS[yyp].yys)
 						}
 						yystate = yyn /* simulate a shift of "error" */
 						goto yystack
@@ -564,21 +561,21 @@ yynewstate:
 
 				/* the current p has no shift on "error", pop stack */
 				if yyDebug >= 2 {
-					__yyfmt__.Printf("\terror recovery pops state %%d\n", yyS[yyp].yys)
+					__yyfmt__.Printf("error recovery pops state %%d\n", yyS[yyp].yys)
 				}
 				yyp--
 			}
 			/* there is no state on the stack with an error shift ... abort */
 			if yyDebug >= 2 {
-				__yyfmt__.Printf("\terror recovery failed\n\n")
+				__yyfmt__.Printf("error recovery failed\n")
 			}
 			goto ret1
 
 		case 3: /* no shift yet; clobber input char */
 			if yyDebug >= 2 {
-				__yyfmt__.Printf("\terror recovery discards %%s\n", %[1]sSymName(yychar))
+				__yyfmt__.Printf("error recovery discards %%s\n", %[1]sSymName(yyxchar))
 			}
-			if yychar == yyEofCode {
+			if yyxchar == yyEofCode {
 				goto ret1
 			}
 
@@ -605,7 +602,7 @@ yynewstate:
 	yystate = int(%[1]sParseTab[yyS[yyp].yys][x])+%[1]sTabOfs
 	/* reduction by production r */
 	if yyDebug >= 2 {
-		__yyfmt__.Printf("\treduce using rule %%v (%%s), and goto state %%d\n\n", r, %[1]sSymName(x), yystate)
+		__yyfmt__.Printf("reduce using rule %%v (%%s), and goto state %%d\n", r, %[1]sSymNames[x], yystate)
 	}
 
 	switch r {%i

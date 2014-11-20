@@ -13,14 +13,16 @@
 //	goyacc [options] [input]
 //
 //	options and (defaults)
-//		-c			report state closures
-//		-ex			explain how were conflicts resolved
-//		-l			disable line directives (false); for compatibility only - ignored
-//		-la			report all lookahead sets
-//		-o outputFile		parser output ("y.go")
-//		-p prefix		name prefix to use in generated code ("yy")
-//		-v reportFile		create grammar report ("y.output")
-//		-xe examplesFile	generate error messages by examples ("")
+//		-c (false)              report state closures
+//		-ex (false)             explain how were conflicts resolved
+//		-l (false)              disable line directives (false); for compatibility only - ignored
+//		-la (false)             report all lookahead sets
+//		-o outputFile           parser output ("y.go")
+//		-p prefix               name prefix to use in generated code ("yy")
+//		-v reportFile           create grammar report ("y.output")
+//		-xe examplesFile        generate error messages by examples ("")
+//		-dlvalf ("%+v")         debug format of -dlval (runtime yyDebug >= 3)
+//		-dlval ("lval")         debug value (runtime yyDebug >= 3)
 //
 // If no non flag arguments are given, goyacc reads standard input.
 //
@@ -92,6 +94,8 @@ import (
 var (
 	//oNoDefault = flag.Bool("nodefault", false, "disable generating $default actions")
 	oClosures = flag.Bool("c", false, "report state closures")
+	oDlval    = flag.String("dlval", "lval", "debug value (runtime yyDebug >= 3)")
+	oDlvalf   = flag.String("dlvalf", "%+v", "debug format of -dlval (runtime yyDebug >= 3)")
 	oLA       = flag.Bool("la", false, "report all lookahead sets")
 	oNoLines  = flag.Bool("l", false, "disable line directives (for compatibility ony - ignored)")
 	oOut      = flag.String("o", "y.go", "parser output")
@@ -432,15 +436,15 @@ func %[1]sSymName(c int) (s string) {
 	return __yyfmt__.Sprintf("%%d", c)
 }
 
-func %[1]slex1(lex %[1]sLexer, lval *%[1]sSymType) (n, x int) {
-	n = lex.Lex(lval)
+func %[1]slex1(yylex %[1]sLexer, lval *%[1]sSymType) (n int) {
+	n = yylex.Lex(lval)
 	if n <= 0 {
 		n = -1
 	}
 	if %[1]sDebug >= 3 {
-			__yyfmt__.Printf("\nlex %%s(%%#x %%d), lval %%+v\n", %[1]sSymName(n), n, n, lval)
+		__yyfmt__.Printf("\nlex %%s(%%#x %%d), %[4]s: %[3]s\n", %[1]sSymName(n), n, n, %[4]s)
 	}
-	return n, %[1]sXLAT[n]
+	return n
 }
 
 func %[1]sParse(yylex %[1]sLexer) int {
@@ -485,7 +489,11 @@ yystack:
 
 yynewstate:
 	if yychar < 0 {
-		yychar, yyxchar = yylex1(yylex, &yylval)
+		yychar = yylex1(yylex, &yylval)
+		var ok bool
+		if yyxchar, ok = %[1]sXLAT[yychar]; !ok {
+			yyxchar = len(%[1]sSymNames) // > tab width
+		}
 	}
 	if yyDebug >= 4 {
 		var a []int
@@ -534,7 +542,9 @@ yynewstate:
 			if !ok {
 				msg = "syntax error"
 			}
-			yylex.Error(msg)
+			if msg != "" {
+				yylex.Error(msg)
+			}
 			Nerrs++
 			fallthrough
 
@@ -546,7 +556,7 @@ yynewstate:
 				row := %[1]sParseTab[yyS[yyp].yys]
 				if yyError < len(row) {
 					yyn = int(row[yyError])+%[1]sTabOfs
-					if yyn != 0 { // hit
+					if yyn > 0 { // hit
 						if %[1]sDebug >= 2 {
 							__yyfmt__.Printf("error recovery found error shift in state %%d\n", yyS[yyp].yys)
 						}
@@ -603,7 +613,7 @@ yynewstate:
 
 	switch r {%i
 `,
-		*oPref, errSym)
+		*oPref, errSym, *oDlvalf, *oDlval)
 	for r, rule := range p.Rules {
 		action := rule.Action
 		if len(action) == 0 {

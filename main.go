@@ -17,7 +17,7 @@
 //		-dlval              debug value when runtime yyDebug >= 3 ("lval")
 //		-dlvalf             debug format of -dlval ("%+v")
 //		-ex                 explain how were conflicts resolved (false)
-//		-l                  disable line directives (false); for compatibility only - ignored (false)
+//		-l                  disable line directives, for compatibility only - ignored (false)
 //		-la                 report all lookahead sets (false)
 //		-o outputFile       parser output ("y.go")
 //		-p prefix           name prefix to use in generated code ("yy")

@@ -13,16 +13,16 @@
 //	goyacc [options] [input]
 //
 //	options and (defaults)
-//		-c (false)              report state closures
-//		-ex (false)             explain how were conflicts resolved
-//		-l (false)              disable line directives (false); for compatibility only - ignored
-//		-la (false)             report all lookahead sets
-//		-o outputFile           parser output ("y.go")
-//		-p prefix               name prefix to use in generated code ("yy")
-//		-v reportFile           create grammar report ("y.output")
-//		-xe examplesFile        generate error messages by examples ("")
-//		-dlvalf ("%+v")         debug format of -dlval (runtime yyDebug >= 3)
-//		-dlval ("lval")         debug value (runtime yyDebug >= 3)
+//		-c                  report state closures (false)
+//		-dlval              debug value when runtime yyDebug >= 3 ("lval")
+//		-dlvalf             debug format of -dlval ("%+v")
+//		-ex                 explain how were conflicts resolved (false)
+//		-l                  disable line directives (false); for compatibility only - ignored (false)
+//		-la                 report all lookahead sets (false)
+//		-o outputFile       parser output ("y.go")
+//		-p prefix           name prefix to use in generated code ("yy")
+//		-v reportFile       create grammar report ("y.output")
+//		-xe examplesFile    generate error messages by examples ("")
 //
 // If no non flag arguments are given, goyacc reads standard input.
 //
@@ -49,16 +49,16 @@
 // generated code. Setting it to distinct values allows multiple grammars to be
 // placed in a single package.
 //
-// Extensions wrt go tool yacc
+// Differences wrt go tool yacc
 //
 // - goyacc implements ideas from "Generating LR Syntax Error Messages from
 // Examples"[1]. Use the -xe flag to pass a name of the example file. For more
 // details about the example format please see [2].
 //
 // - The grammar report includes example token sequences leading to the
-// particular state.
+// particular state. Can help understanding conflicts.
 //
-// - Minor changes/improvements of parser debugging.
+// - Minor changes in parser debug output.
 //
 // Links
 //

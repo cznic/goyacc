@@ -495,7 +495,7 @@ yynewstate:
 			yyxchar = len(%[1]sSymNames) // > tab width
 		}
 	}
-	if yyDebug >= 4 {
+	if %[1]sDebug >= 4 {
 		var a []int
 		for _, v := range yyS[:yyp+1] {
 			a = append(a, v.yys)
@@ -514,7 +514,7 @@ yynewstate:
 		yychar = -1
 		yyVAL = yylval
 		yystate = yyn
-		if yyDebug >= 2 {
+		if %[1]sDebug >= 2 {
 			__yyfmt__.Printf("shift, and goto state %%d\n", yystate)
 		}
 		if Errflag > 0 {
@@ -523,6 +523,9 @@ yynewstate:
 		goto yystack
 	case yyn < 0: // reduce
 	case yystate == 1: // accept
+		if %[1]sDebug >= 2 {
+			__yyfmt__.Println("accept")
+		}
 		goto ret0
 	}
 
@@ -530,7 +533,7 @@ yynewstate:
 		/* error ... attempt to resume parsing */
 		switch Errflag {
 		case 0: /* brand new error */
-			if yyDebug >= 1 {
+			if %[1]sDebug >= 1 {
 				__yyfmt__.Printf("no action for %%s in state %%d\n", %[1]sSymName(yychar), yystate)
 			}
 			k := %[1]sXError{yystate, yyxchar}
@@ -566,19 +569,19 @@ yynewstate:
 				}
 
 				/* the current p has no shift on "error", pop stack */
-				if yyDebug >= 2 {
+				if %[1]sDebug >= 2 {
 					__yyfmt__.Printf("error recovery pops state %%d\n", yyS[yyp].yys)
 				}
 				yyp--
 			}
 			/* there is no state on the stack with an error shift ... abort */
-			if yyDebug >= 2 {
+			if %[1]sDebug >= 2 {
 				__yyfmt__.Printf("error recovery failed\n")
 			}
 			goto ret1
 
 		case 3: /* no shift yet; clobber input char */
-			if yyDebug >= 2 {
+			if %[1]sDebug >= 2 {
 				__yyfmt__.Printf("error recovery discards %%s\n", %[1]sSymName(yychar))
 			}
 			if yychar == yyEofCode {
@@ -607,7 +610,7 @@ yynewstate:
 	/* consult goto table to find next state */
 	yystate = int(%[1]sParseTab[yyS[yyp].yys][x])+%[1]sTabOfs
 	/* reduction by production r */
-	if yyDebug >= 2 {
+	if %[1]sDebug >= 2 {
 		__yyfmt__.Printf("reduce using rule %%v (%%s), and goto state %%d\n", r, %[1]sSymNames[x], yystate)
 	}
 

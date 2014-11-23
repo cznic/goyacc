@@ -185,10 +185,7 @@ func main1(in string) (err error) {
 		defer func() {
 			var dest []byte
 			if dest, e = format.Source(buf.Bytes()); e != nil {
-				if err == nil {
-					err = e
-				}
-				return
+				dest = buf.Bytes()
 			}
 
 			if _, e = w.Write(dest); e != nil && err == nil {

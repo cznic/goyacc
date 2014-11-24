@@ -634,8 +634,15 @@ yynewstate:
 			switch part.Tok {
 			case yscanner.DLR_DLR:
 				f.Format("yyVAL.%s", typ)
+				if typ == "" {
+					panic("internal error 002")
+				}
 			case yscanner.DLR_NUM:
-				f.Format("yyS[yypt-%d].%s", max-num, p.Syms[components[num-1]].Type)
+				typ = p.Syms[components[num-1]].Type
+				if typ == "" {
+					panic("internal error 003")
+				}
+				f.Format("yyS[yypt-%d].%s", max-num, typ)
 			case yscanner.DLR_TAG_DLR:
 				f.Format("yyVAL.%s", part.Tag)
 			case yscanner.DLR_TAG_NUM:

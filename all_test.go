@@ -46,7 +46,7 @@ func use(...interface{}) {}
 var (
 	oSrc    = flag.String("src", "", "test src")
 	oDev    = flag.Bool("dev", false, "enable dev test(s)")
-	oDevOut = flag.String("devout", os.DevNull, "dev test -out replacement")
+	oDevOut = flag.String("devout", os.DevNull, "dev test -o replacement")
 )
 
 func TestDev(t *testing.T) {

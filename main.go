@@ -443,6 +443,8 @@ func %[1]slex1(yylex %[1]sLexer, lval *%[1]sSymType) (n int) {
 	}
 	return n
 }
+	
+var yyLastVAL %[1]sSymType // Last reduction lval hook.
 
 func %[1]sParse(yylex %[1]sLexer) int {
 	const yyError = %[2]d
@@ -654,6 +656,7 @@ yynewstate:
 	f.Format(`%u
 	}
 
+	yyLastVAL = yyVAL
 	goto yystack /* stack new state and value */
 }
 

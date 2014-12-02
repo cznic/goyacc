@@ -35,6 +35,14 @@
 //		Error(e string)
 //	}
 //
+// Optionally the argument to yyParse may implement the following interface:
+//
+//	type yyLexerEx interface {
+//		yyLexer
+//		// Hook for recording a reduction.
+//		Reduced(rule, state int, lval *yySymType) // Client must copy *lval.
+//	}
+//
 // Lex should return the token identifier, and place other token information in
 // lval (which replaces the usual yylval). Error is equivalent to yyerror in
 // the original yacc.
@@ -59,6 +67,12 @@
 // particular state. Can help understanding conflicts.
 //
 // - Minor changes in parser debug output.
+//
+// Changelog
+//
+// 2014-12-02: Added support for the optional yyLexerEx interface. The Reduced
+// method can be useful for debugging and/or automatically producing examples
+// by parsing code fragments.
 //
 // Links
 //
@@ -424,6 +438,11 @@ type %[1]sLexer interface {
 	Error(s string)
 }
 
+type %[1]sLexerEx interface {
+	%[1]sLexer
+	Reduced(rule, state int, lval *yySymType)
+}
+
 func %[1]sSymName(c int) (s string) {
 	x, ok := %[1]sXLAT[c]
 	if ok {
@@ -444,11 +463,10 @@ func %[1]slex1(yylex %[1]sLexer, lval *%[1]sSymType) (n int) {
 	return n
 }
 	
-var yyLastVAL %[1]sSymType // Last reduction lval hook.
-
 func %[1]sParse(yylex %[1]sLexer) int {
 	const yyError = %[2]d
 
+	yyEx, _ := yylex.(%[1]sLexerEx)
 	var yyn int
 	var yylval %[1]sSymType
 	var yyVAL %[1]sSymType
@@ -607,6 +625,7 @@ yynewstate:
 	yyVAL = yyS[yyp+1]
 
 	/* consult goto table to find next state */
+	exState := yystate
 	yystate = int(%[1]sParseTab[yyS[yyp].yys][x])+%[1]sTabOfs
 	/* reduction by production r */
 	if %[1]sDebug >= 2 {
@@ -656,7 +675,9 @@ yynewstate:
 	f.Format(`%u
 	}
 
-	yyLastVAL = yyVAL
+	if yyEx != nil {
+		yyEx.Reduced(exState, r, &yyVAL)
+	}
 	goto yystack /* stack new state and value */
 }
 

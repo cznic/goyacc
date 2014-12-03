@@ -40,7 +40,7 @@
 //	type yyLexerEx interface {
 //		yyLexer
 //		// Hook for recording a reduction.
-//		Reduced(rule, state int, lval *yySymType) // Client must copy *lval.
+//		Reduced(rule, state int, lval *yySymType) (stop bool) // Client should copy *lval.
 //	}
 //
 // Lex should return the token identifier, and place other token information in
@@ -72,7 +72,8 @@
 //
 // 2014-12-02: Added support for the optional yyLexerEx interface. The Reduced
 // method can be useful for debugging and/or automatically producing examples
-// by parsing code fragments.
+// by parsing code fragments. If it returns true the parser exits immediately
+// with return value -1.
 //
 // Links
 //
@@ -440,7 +441,7 @@ type %[1]sLexer interface {
 
 type %[1]sLexerEx interface {
 	%[1]sLexer
-	Reduced(rule, state int, lval *yySymType)
+	Reduced(rule, state int, lval *yySymType) bool
 }
 
 func %[1]sSymName(c int) (s string) {
@@ -675,8 +676,8 @@ yynewstate:
 	f.Format(`%u
 	}
 
-	if yyEx != nil {
-		yyEx.Reduced(exState, r, &yyVAL)
+	if yyEx != nil && yyEx.Reduced(exState, r, &yyVAL) {
+		return -1
 	}
 	goto yystack /* stack new state and value */
 }

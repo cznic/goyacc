@@ -96,6 +96,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -124,8 +125,14 @@ func main() {
 	log.SetFlags(log.Ldate | log.Lmicroseconds)
 
 	defer func() {
+		_, file, line, ok := runtime.Caller(2)
 		if e := recover(); e != nil {
-			log.Fatal(e)
+			switch {
+			case ok:
+				log.Fatalf("%s:%d: panic: %v", file, line, e)
+			default:
+				log.Fatalf("panic: %v", e)
+			}
 		}
 	}()
 

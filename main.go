@@ -70,6 +70,11 @@
 //
 // Changelog
 //
+// 2014-12-10: Packages which goyacc is dependent on were updated. Goyacc users
+// should rebuild goyacc:
+//
+//	$ go get -u github.com/cznic/goyacc
+//
 // 2014-12-02: Added support for the optional yyLexerEx interface. The Reduced
 // method can be useful for debugging and/or automatically producing examples
 // by parsing code fragments. If it returns true the parser exits immediately

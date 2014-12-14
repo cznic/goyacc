@@ -70,8 +70,8 @@
 //
 // Changelog
 //
-// 2014-12-10: Packages which goyacc is dependent on were updated. Goyacc users
-// should rebuild goyacc:
+// 2014-12-14: Packages which goyacc is dependent on were updated. Goyacc users
+// should rebuild the binary:
 //
 //	$ go get -u github.com/cznic/goyacc
 //

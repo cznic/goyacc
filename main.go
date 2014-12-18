@@ -70,8 +70,9 @@
 //
 // Changelog
 //
-// 2014-12-14: Packages which goyacc is dependent on were updated. Goyacc users
-// should rebuild the binary:
+// 2014-12-18: Support %precedence for better bison compatibility[3]. The
+// actual changes are in packages goyacc is dependent on. Goyacc users should
+// rebuild the binary:
 //
 //	$ go get -u github.com/cznic/goyacc
 //
@@ -87,6 +88,7 @@
 //  [0]: http://golang.org/cmd/yacc/
 //  [1]: http://people.via.ecp.fr/~stilgar/doc/compilo/parser/Generating%20LR%20Syntax%20Error%20Messages.pdf
 //  [2]: http://godoc.org/github.com/cznic/y#hdr-Error_Examples
+//  [3]: http://www.gnu.org/software/bison/manual/html_node/Precedence-Only.html#Precedence-Only
 package main
 
 import (

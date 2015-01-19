@@ -470,7 +470,7 @@ func %[1]sSymName(c int) (s string) {
 func %[1]slex1(yylex %[1]sLexer, lval *%[1]sSymType) (n int) {
 	n = yylex.Lex(lval)
 	if n <= 0 {
-		n = -1
+		n = %[1]sEofCode
 	}
 	if %[1]sDebug >= 3 {
 		__yyfmt__.Printf("\nlex %%s(%%#x %%d), %[4]s: %[3]s\n", %[1]sSymName(n), n, n, %[4]s)
@@ -616,7 +616,7 @@ yynewstate:
 			if %[1]sDebug >= 2 {
 				__yyfmt__.Printf("error recovery discards %%s\n", %[1]sSymName(yychar))
 			}
-			if yychar == yyEofCode {
+			if yychar == %[1]sEofCode {
 				goto ret1
 			}
 

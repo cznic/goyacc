@@ -455,7 +455,7 @@ type %[1]sLexer interface {
 
 type %[1]sLexerEx interface {
 	%[1]sLexer
-	Reduced(rule, state int, lval *yySymType) bool
+	Reduced(rule, state int, lval *%[1]sSymType) bool
 }
 
 func %[1]sSymName(c int) (s string) {
@@ -521,7 +521,7 @@ yystack:
 
 yynewstate:
 	if yychar < 0 {
-		yychar = yylex1(yylex, &yylval)
+		yychar = %[1]slex1(yylex, &yylval)
 		var ok bool
 		if yyxchar, ok = %[1]sXLAT[yychar]; !ok {
 			yyxchar = len(%[1]sSymNames) // > tab width

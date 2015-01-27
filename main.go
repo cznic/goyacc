@@ -690,7 +690,7 @@ yynewstate:
 	f.Format(`%u
 	}
 
-	if yyEx != nil && yyEx.Reduced(exState, r, &yyVAL) {
+	if yyEx != nil && yyEx.Reduced(r, exState, &yyVAL) {
 		return -1
 	}
 	goto yystack /* stack new state and value */

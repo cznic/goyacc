@@ -674,7 +674,7 @@ yynewstate:
 					panic("internal error 002")
 				}
 			case yscanner.DLR_NUM:
-				typ = p.Syms[components[num-1]].Type
+				typ := p.Syms[components[num-1]].Type
 				if typ == "" {
 					panic("internal error 003")
 				}

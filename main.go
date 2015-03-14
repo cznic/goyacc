@@ -140,7 +140,7 @@ var (
 )
 
 func main() {
-	log.SetFlags(log.Ldate | log.Lmicroseconds)
+	log.SetFlags(0)
 
 	defer func() {
 		_, file, line, ok := runtime.Caller(2)

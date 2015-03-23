@@ -280,7 +280,7 @@ func main1(in string) (err error) {
 	}
 
 	if fn := *oXErrorsGen; fn != "" {
-		f, err := os.OpenFile(fn, os.O_EXCL|os.O_RDWR|os.O_CREATE, 0666)
+		f, err := os.OpenFile(fn, os.O_RDWR|os.O_CREATE, 0666)
 		if err != nil {
 			return err
 		}

@@ -32,9 +32,18 @@
 //
 // Changelog
 //
+// 2015-03-24: The search for a custom error message is now extended to include
+// also the last state that was shifted into, if any. This change resolves a
+// problem in which a lookahead symbol is valid for a reduce action in state A,
+// but the same symbol is later never accepted by any shift action later in
+// some state B which is popped from the state stack after the reduction is
+// performed. The computed from example state is A but when the is error
+// actually detected, the state is now B and the custom error was thus not
+// used.
+//
 // 2015-02-23: Added -xegen flag. It can be used to automagically generate a
-// skeleton errors by example file which can be edited and submited later as an
-// argument of the -xe option.
+// skeleton errors by example file which can be, for example, edited and/or
+// submited later as an argument of the -xe option.
 //
 // 2014-12-18: Support %precedence for better bison compatibility[3]. The
 // actual changes are in packages goyacc is dependent on. Goyacc users should
@@ -530,6 +539,7 @@ func %[1]sParse(yylex %[1]sLexer) int {
 	yystate := 0
 	yychar := -1
 	var yyxchar int
+	var yyshift int
 	yyp := -1
 	goto yystack
 
@@ -577,6 +587,7 @@ yynewstate:
 		yychar = -1
 		yyVAL = yylval
 		yystate = yyn
+		yyshift = yyn
 		if %[1]sDebug >= 2 {
 			__yyfmt__.Printf("shift, and goto state %%d\n", yystate)
 		}
@@ -599,11 +610,15 @@ yynewstate:
 			if %[1]sDebug >= 1 {
 				__yyfmt__.Printf("no action for %%s in state %%d\n", %[1]sSymName(yychar), yystate)
 			}
-			k := %[1]sXError{yystate, yyxchar}
-			msg, ok := %[1]sXErrors[k]
+			msg, ok := %[1]sXErrors[%[1]sXError{yystate, yyxchar}]
 			if !ok {
-				k.xsym = -1
-				msg, ok = %[1]sXErrors[k]
+				msg, ok = %[1]sXErrors[%[1]sXError{yystate, -1}]
+			}
+			if !ok && yyshift != 0 {
+				msg, ok = %[1]sXErrors[%[1]sXError{yyshift, yyxchar}]
+			}
+			if !ok {
+				msg, ok = %[1]sXErrors[%[1]sXError{yyshift, -1}]
 			}
 			if !ok {
 				msg = "syntax error"

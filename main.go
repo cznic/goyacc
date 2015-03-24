@@ -35,8 +35,8 @@
 // 2015-03-24: The search for a custom error message is now extended to include
 // also the last state that was shifted into, if any. This change resolves a
 // problem in which a lookahead symbol is valid for a reduce action in state A,
-// but the same symbol is later never accepted by any shift action later in
-// some state B which is popped from the state stack after the reduction is
+// but the same symbol is later never accepted by any shift action in some
+// state B which is popped from the state stack after the reduction is
 // performed. The computed from example state is A but when the is error
 // actually detected, the state is now B and the custom error was thus not
 // used.

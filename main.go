@@ -37,7 +37,7 @@
 // problem in which a lookahead symbol is valid for a reduce action in state A,
 // but the same symbol is later never accepted by any shift action in some
 // state B which is popped from the state stack after the reduction is
-// performed. The computed from example state is A but when the is error
+// performed. The computed from example state is A but when the error is
 // actually detected, the state is now B and the custom error was thus not
 // used.
 //

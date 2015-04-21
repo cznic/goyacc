@@ -127,7 +127,7 @@ import (
 	"strings"
 
 	"github.com/cznic/mathutil"
-	yscanner "github.com/cznic/scanner/yacc"
+	"github.com/cznic/parser/yacc"
 	"github.com/cznic/sortutil"
 	"github.com/cznic/strutil"
 	"github.com/cznic/y"
@@ -697,7 +697,11 @@ yynewstate:
 `,
 		*oPref, errSym, *oDlvalf, *oDlval)
 	for r, rule := range p.Rules {
-		action := rule.Action
+		if rule.Action == nil {
+			continue
+		}
+
+		action := rule.Action.Values
 		if len(action) == 0 {
 			continue
 		}
@@ -712,22 +716,23 @@ yynewstate:
 		f.Format("case %d: ", r)
 		for _, part := range action {
 			num := part.Num
-			f.Format("%s", part.Src)
-			switch part.Tok {
-			case yscanner.DLR_DLR:
+			switch part.Type {
+			case parser.ActionValueGo:
+				f.Format("%s", part.Src)
+			case parser.ActionValueDlrDlr:
 				f.Format("yyVAL.%s", typ)
 				if typ == "" {
 					panic("internal error 002")
 				}
-			case yscanner.DLR_NUM:
+			case parser.ActionValueDlrNum:
 				typ := p.Syms[components[num-1]].Type
 				if typ == "" {
 					panic("internal error 003")
 				}
 				f.Format("yyS[yypt-%d].%s", max-num, typ)
-			case yscanner.DLR_TAG_DLR:
+			case parser.ActionValueDlrTagDlr:
 				f.Format("yyVAL.%s", part.Tag)
-			case yscanner.DLR_TAG_NUM:
+			case parser.ActionValueDlrTagNum:
 				f.Format("yyS[yypt-%d].%s", max-num, part.Tag)
 			}
 		}

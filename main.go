@@ -620,12 +620,10 @@ yynewstate:
 			if !ok {
 				msg, ok = %[1]sXErrors[%[1]sXError{yyshift, -1}]
 			}
-			if !ok {
+			if !ok || msg == "" {
 				msg = "syntax error"
 			}
-			if msg != "" {
-				yylex.Error(msg)
-			}
+			yylex.Error(msg)
 			Nerrs++
 			fallthrough
 

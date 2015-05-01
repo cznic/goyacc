@@ -705,6 +705,17 @@ yynewstate:
 			continue
 		}
 
+		if len(action) == 1 {
+			part := action[0]
+			if part.Type == parser.ActionValueGo {
+				src := part.Src
+				src = src[1 : len(src)-1] // Remove lead '{' and trail '}'
+				if strings.TrimSpace(src) == "" {
+					continue
+				}
+			}
+		}
+
 		components := rule.Components
 		typ := rule.Sym.Type
 		max := len(components)

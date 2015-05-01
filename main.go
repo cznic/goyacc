@@ -339,6 +339,7 @@ func main1(in string) (err error) {
 
 	// ----------------------------------------------------------- Prologue
 	f := strutil.IndentFormatter(out, "\t")
+	f.Format("// CAUTION: Generated file - DO NOT EDIT.\n\n")
 	f.Format("%s", injectImport(p.Prologue))
 	f.Format(`
 type %[1]sSymType %i%s%u

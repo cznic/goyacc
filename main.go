@@ -16,6 +16,7 @@
 //
 //	options and (defaults)
 //		-c                  Report state closures. (false)
+//		-cr                 Check all states are reducible. (false)
 //		-dlval              Debug value when runtime yyDebug >= 3. ("lval")
 //		-dlvalf             Debug format of -dlval. ("%+v")
 //		-ex                 Explain how were conflicts resolved. (false)
@@ -136,6 +137,7 @@ import (
 var (
 	//oNoDefault = flag.Bool("nodefault", false, "disable generating $default actions")
 	oClosures   = flag.Bool("c", false, "report state closures")
+	oReducible  = flag.Bool("cr", false, "check all states are reducible")
 	oDlval      = flag.String("dlval", "lval", "debug value (runtime yyDebug >= 3)")
 	oDlvalf     = flag.String("dlvalf", "%+v", "debug format of -dlval (runtime yyDebug >= 3)")
 	oLA         = flag.Bool("la", false, "report all lookahead sets")
@@ -279,6 +281,7 @@ func main1(in string) (err error) {
 		AllowConflicts: true,
 		Closures:       *oClosures,
 		LA:             *oLA,
+		Reducible:      *oReducible,
 		Report:         rep,
 		Resolved:       *oResolved,
 		XErrorsName:    *oXErrors,

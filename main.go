@@ -421,7 +421,7 @@ type %[1]sXError struct {
 		if xerr.Lookahead != nil {
 			xsym = xlat[xerr.Lookahead.Value]
 		}
-		f.Format("%[1]sXError{%d, %d}: %q,\n", *oPref, state, xsym, xerr.Msg)
+		f.Format("%[1]sXError{%d, %d}: \"%s\",\n", *oPref, state, xsym, xerr.Msg)
 	}
 	f.Format("%u}\n\n")
 

@@ -406,6 +406,19 @@ type %[1]sXError struct {
 	}
 	f.Format("%u}\n")
 
+	// Token literal strings
+	f.Format("\n%sTokenLiteralStrings = map[int]string{%i\n", *oPref)
+	for _, v := range su {
+		if sym := v.sym; sym.IsTerminal {
+			ls := sym.LiteralString
+			if ls == "" {
+				continue
+			}
+			f.Format("%d: %s,\n", sym.Value, ls)
+		}
+	}
+	f.Format("%u}\n")
+
 	// Reduction table
 	f.Format("\n%sReductions = map[int]struct{xsym, components int}{%i\n", *oPref)
 	for r, rule := range p.Rules {
@@ -506,6 +519,10 @@ func %[1]sSymName(c int) (s string) {
 	x, ok := %[1]sXLAT[c]
 	if ok {
 		return %[1]sSymNames[x]
+	}
+
+	if c < 0x7f {
+		return __yyfmt__.Sprintf("'%%c'", c)
 	}
 
 	return __yyfmt__.Sprintf("%%d", c)
@@ -624,7 +641,21 @@ yynewstate:
 			if !ok {
 				msg, ok = %[1]sXErrors[%[1]sXError{yyshift, -1}]
 			}
-			if !ok || msg == "" {
+			if yychar > 0 {
+				ls := %[1]sTokenLiteralStrings[yychar]
+				if ls == "" {
+					ls = %[1]sSymName(yychar)
+				}
+				if ls != "" {
+					switch {
+					case msg == "":
+						msg = __yyfmt__.Sprintf("unexpected %%s", ls)
+					default:
+						msg = __yyfmt__.Sprintf("unexpected %%s, %%s", ls, msg)
+					}
+				}
+			}
+			if msg == "" {
 				msg = "syntax error"
 			}
 			yylex.Error(msg)

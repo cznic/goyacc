@@ -33,6 +33,11 @@
 //
 // Changelog
 //
+// 2016-03-17: Error messages now use the last token literal string, if any, to
+// produce nicer text like "unexpected integer constant". If using xerrors the
+// message could be, for example, something like "unexpected integer constant,
+// expected '{'"-
+//
 // 2015-03-24: The search for a custom error message is now extended to include
 // also the last state that was shifted into, if any. This change resolves a
 // problem in which a lookahead symbol is valid for a reduce action in state A,

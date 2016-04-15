@@ -128,7 +128,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"runtime"
 	"sort"
 	"strings"
 
@@ -157,19 +156,6 @@ var (
 
 func main() {
 	log.SetFlags(0)
-
-	defer func() {
-		_, file, line, ok := runtime.Caller(2)
-		if e := recover(); e != nil {
-			switch {
-			case ok:
-				log.Fatalf("%s:%d: panic: %v", file, line, e)
-			default:
-				log.Fatalf("panic: %v", e)
-			}
-		}
-	}()
-
 	flag.Parse()
 	var in string
 	switch flag.NArg() {

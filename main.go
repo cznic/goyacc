@@ -129,6 +129,7 @@ import (
 	"log"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/cznic/mathutil"
@@ -393,7 +394,7 @@ type %[1]sXError struct {
 	// Symbol names
 	f.Format("\n%sSymNames = []string{%i\n", *oPref)
 	for _, v := range su {
-		f.Format("%q,\n", v.sym.Name)
+		f.Format("%q,\n", strings.TrimSpace(v.sym.Name))
 	}
 	f.Format("%u}\n")
 
@@ -402,10 +403,13 @@ type %[1]sXError struct {
 	for _, v := range su {
 		if sym := v.sym; sym.IsTerminal {
 			ls := sym.LiteralString
+			ls, _ = strconv.Unquote(ls)
+			ls = strings.TrimSpace(ls)
 			if ls == "" {
 				continue
 			}
-			f.Format("%d: %s,\n", sym.Value, ls)
+
+			f.Format("%d: %q,\n", sym.Value, ls)
 		}
 	}
 	f.Format("%u}\n")

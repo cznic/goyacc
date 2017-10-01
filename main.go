@@ -383,6 +383,18 @@ type %[1]sXError struct {
 	// ---------------------------------------------------------- Variables
 	f.Format("\n\nvar (%i\n")
 
+	f.Format("\n%sPrec = map[int]int{%i\n", *oPref)
+	for i, v := range p.AssocDefs {
+		for _, w := range v.Syms {
+			if !w.IsTerminal {
+				continue
+			}
+
+			f.Format("%s: %v,\n", w.Name, i)
+		}
+	}
+	f.Format("}%u\n\n")
+
 	if *oFollowSets {
 		f.Format("%sFollow = [][]int{%i\n", *oPref)
 		for state, action := range p.Table {

@@ -41,6 +41,10 @@ func TODO(...interface{}) string {
 
 func use(...interface{}) {}
 
+func init() {
+	use(caller, dbg, TODO) //TODOOK
+}
+
 // ============================================================================
 
 var (

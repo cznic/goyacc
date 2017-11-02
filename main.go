@@ -546,7 +546,7 @@ func %[1]sSymName(c int) (s string) {
 	}
 
 	if c < 0x7f {
-		return __yyfmt__.Sprintf("'%%c'", c)
+		return __yyfmt__.Sprintf("%%q", c)
 	}
 
 	return __yyfmt__.Sprintf("%%d", c)

@@ -539,7 +539,13 @@ type %[1]sXError struct {
 		makeYYS = fmt.Sprintf(`p := %[1]sPool.Get().(*[]%[1]sSymType)
 yyS := *p
 
-defer %[1]sPool.Put(p)
+defer func() {
+	var v %[1]sSymType
+	for i := range yyS {
+		yyS[i] = v
+	}
+	%[1]sPool.Put(p)
+}()
 `, *oPref)
 	}
 

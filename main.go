@@ -372,6 +372,7 @@ type %[1]sXError struct {
 	}
 	sort.Strings(a)
 	f.Format("\nconst (%i\n")
+	maxTokName += len(*oPref)
 	for _, v := range a {
 		nm := v
 		switch nm {

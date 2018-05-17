@@ -7,6 +7,6 @@ Installation
 
     $ # go get github.com/cznic/goyacc
 
-    $ go get github.com/hsrx/goyacc
+    $ go get github.com/qsmx/goyacc
 
 Documentation: [godoc.org/github.com/cznic/goyacc](http://godoc.org/github.com/cznic/goyacc)

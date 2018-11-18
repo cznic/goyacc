@@ -1,10 +1,5 @@
-goyacc
-=
+`github.com/cznic/goyacc` has moved to [`modernc.org/goyacc`](https://godoc.org/modernc.org/goyacc) ([vcs](https://gitlab.com/cznic/goyacc)).
 
-Goyacc is a version of yacc generating Go programs.
+Please update your import paths to `modernc.org/goyacc`.
 
-Installation
-
-    $ go get github.com/cznic/goyacc
-
-Documentation: [godoc.org/github.com/cznic/goyacc](http://godoc.org/github.com/cznic/goyacc)
+This repo is now archived.
